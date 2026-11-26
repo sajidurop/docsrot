@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DocsRot — Docs go stale silently. Catch it.</title>
+<meta name="description" content="Crawl a docs site, find broken links and stale pages using configurable rules, compare docs against code changes, and produce a health report.">
+<meta name="keywords" content="docs health, documentation audit, stale docs detector">
+<meta name="author" content="Sajidur">
+<meta property="og:title" content="DocsRot — Docs go stale silently. Catch it.">
+<meta property="og:description" content="Crawl a docs site, find broken links and stale pages using configurable rules, compare docs against code changes, and produce a health report.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://alltoolfree.site">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DocsRot","applicationCategory":"DeveloperApplication","operatingSystem":"Web","author":{"@type":"Person","name":"Sajidur","url":"https://alltoolfree.site"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"license":"https://opensource.org/licenses/MIT"}</script>
+<style>
+:root{--primary:#a16207;--accent:#fef9c3;--bg:#f8fafc;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--card:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+header h1{font-size:19px;margin:0}header .tag{color:var(--muted);font-size:13px}
+header nav{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:14px}
+header nav a{color:var(--ink);text-decoration:none}header nav a:hover{color:var(--primary)}
+main{max-width:1020px;margin:0 auto;padding:22px 16px 40px}
+.hero{background:var(--accent);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+.hero h2{margin:0 0 6px;font-size:22px}.hero p{margin:0;color:#334155}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+button{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:14px}
+button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+button:hover{filter:brightness(.96)}
+input,select,textarea{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff}
+textarea{width:100%}input[type=file]{border:none;padding:4px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.bad td{background:#fef2f2}.muted{color:var(--muted);font-size:13px}.ok{color:#15803d;font-weight:600}.warn{color:#b45309;font-weight:600}
+.issue{border-left:4px solid #f59e0b;background:#fffbeb;padding:10px 12px;border-radius:8px;margin-bottom:8px}
+.issue.error{border-color:#dc2626;background:#fef2f2}.issue.info{border-color:#64748b;background:#f8fafc}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
+.stats>div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.stats b{display:block;font-size:22px}.stats span{font-size:12px;color:var(--muted)}
+.shot{max-width:100%;border:1px solid var(--line);border-radius:8px}
+canvas.shot{width:100%;height:auto}
+pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font-size:12.5px;white-space:pre-wrap}
+code{background:#f1f5f9;padding:1px 5px;border-radius:5px;font-size:13px}
+.imgWrap{position:relative;display:inline-block;max-width:100%}.imgWrap img{max-width:100%;border-radius:8px;display:block}
+.pin{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;transform:translate(-50%,-50%);cursor:pointer}
+.traceRow{display:flex;gap:8px;align-items:center;margin:4px 0;font-size:13px}.tName{min-width:150px}.tBar{height:10px;border-radius:5px;display:inline-block}
+footer{border-top:1px solid var(--line);background:var(--card);padding:20px;text-align:center;font-size:14px;color:var(--muted)}
+footer a{color:var(--primary);text-decoration:none;margin:0 6px}footer a:hover{text-decoration:underline}
+body.client-view .admin-only{display:none}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:50}
+dialog{border:1px solid var(--line);border-radius:12px;padding:20px;max-width:420px}
+</style>
+</head>
+<body class="timeline">
+<header>
+<div class="logo">D</div>
+<div><h1>DocsRot</h1><div class="tag">Docs go stale silently. Catch it. · v1.0.0</div></div>
+<nav><a href="#app">App</a><a href="#how">How it works</a><button id="aboutBtn">About</button></nav>
+</header>
+<main id="app">
+<div class="hero"><h2>Docs go stale silently. Catch it.</h2><p>Crawl a docs site, find broken links and stale pages using configurable rules, compare docs against code changes, and produce a health report.</p></div>
+<div class="panel"><label>Docs URL <input type="url" id="docsUrl" placeholder="https://docs.example.com" style="width:60%"></label> <label>Stale after (days) <input type="number" id="staleDays" value="180" style="width:90px"></label><br><br><button id="crawlBtn" class="primary">Crawl docs</button><p id="status" class="muted"></p><p id="summary"></p></div>
+<div class="panel"><h3>Or paste docs HTML</h3><textarea id="htmlPaste" rows="4"></textarea><br><button id="pasteBtn">Analyse pasted HTML</button> <button id="exportBtn">Export report</button></div>
+<div class="panel"><h3>Link results</h3><table><thead><tr><th>URL</th><th>Status</th><th>Note</th></tr></thead><tbody id="results"></tbody></table></div>
+<div class="panel" id="how"><h3>How it works</h3><p>Enter a docs URL (CORS-enabled sites) or paste its HTML. DocsRot checks every link live, flags broken ones, and flags pages whose content references old years against your staleness rule.</p><p class="muted">Data is stored only in your browser (localStorage) unless a feature explicitly fetches a URL or API you enter. Run <code>npm start</code> for the real server — live checks run server-side and history is saved on disk. Opening <code>index.html</code> directly still works in browser-only mode.</p></div>
+</main>
+<footer>
+<p><strong>DocsRot v1.0.0</strong> · Created by <a href="https://alltoolfree.site" target="_blank" rel="noopener">Sajidur</a> · Open Source (MIT)</p>
+<p><a href="https://alltoolfree.site" target="_blank" rel="noopener">AllToolFree ↗</a> <a href="https://alltoolfree.site" target="_blank" rel="noopener">More free tools ↗</a> <a href="https://github.com/sajidurop/docsrot" target="_blank" rel="noopener">View source on GitHub ↗</a> <a href="https://alltoolfree.site" target="_blank" rel="noopener">Discover AllToolFree ↗</a></p>
+<p class="muted">Self-hostable. Works offline except for features that fetch a URL or API you supply.</p>
+</footer>
+<dialog id="aboutDlg"><h3>About DocsRot</h3><p>Crawl a docs site, find broken links and stale pages using configurable rules, compare docs against code changes, and produce a health report.</p><p>Created by <a href="https://alltoolfree.site" target="_blank" rel="noopener">Sajidur</a></p><p><a href="https://alltoolfree.site" target="_blank" rel="noopener">Discover AllToolFree ↗</a> — more free tools by the same creator.</p><p class="muted">MIT License. Version 1.0.0.</p><button id="closeDlg">Close</button></dialog>
+<div id="toast"></div>
+<script>
+const BRAND={creator:"Sajidur",website:"https://alltoolfree.site",repository:"https://github.com/sajidurop/docsrot",product:"DocsRot",version:"1.0.0"};
+const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
+function save(k,v){try{localStorage.setItem("docsrot:"+k,JSON.stringify(v))}catch(e){}}
+function load(k,d){try{const v=JSON.parse(localStorage.getItem("docsrot:"+k));return v==null?d:v}catch(e){return d}}
+function download(name,text,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:type||"application/json"}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2600)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+document.getElementById("aboutBtn").onclick=()=>document.getElementById("aboutDlg").showModal();
+document.getElementById("closeDlg").onclick=()=>document.getElementById("aboutDlg").close();
+
+async function crawl(){
+ const start=$('#docsUrl').value.trim();if(!start){toast('Enter a docs URL');return}
+ $('#status').textContent='Fetching '+start+'…';
+ let html;try{const r=await fetch(start);html=await r.text()}catch(e){toast('Fetch blocked by CORS — paste the docs HTML/sitemap below instead.');return}
+ await analyse(start,html);
+}
+async function analyse(base,html){
+ const doc=new DOMParser().parseFromString(html,'text/html');
+ const links=[...new Set([...doc.querySelectorAll('a[href]')].map(a=>{try{return new URL(a.getAttribute('href'),base).href}catch(e){return null}}).filter(Boolean))].slice(0,40);
+ const staleDays=+$('#staleDays').value||180;
+ const rows=[];
+ for(const u of links){
+  let status='—',note='';
+  try{const r=await fetch(u,{method:'HEAD'});status=r.status;if(!r.ok)note='BROKEN'}catch(e){status='ERR';note='fetch failed (CORS/offline)'}
+  rows.push({url:u,status,note});
+ }
+ const text=doc.body?doc.body.textContent:'';
+ const yearMatches=(text.match(/\b(19|20)\d{2}\b/g)||[]).map(Number);
+ const oldest=yearMatches.length?Math.min(...yearMatches):null;
+ const stale=oldest&&new Date().getFullYear()-oldest>1;
+ $('#summary').innerHTML=`<b>${links.length}</b> links checked · <b>${rows.filter(r=>r.note==='BROKEN').length}</b> broken · oldest year mentioned: <b>${oldest||'—'}</b> ${stale?'<span class="warn">— possibly stale (rule: '+staleDays+' days)</span>':''}`;
+ $('#results').innerHTML=rows.map(r=>`<tr class="${r.note==='BROKEN'?'bad':''}"><td>${esc(r.url)}</td><td>${r.status}</td><td>${esc(r.note)}</td></tr>`).join('');
+ const h=load('reports',[]);h.unshift({at:new Date().toISOString(),base,links:links.length,broken:rows.filter(r=>r.note==='BROKEN').length});save('reports',h.slice(0,20));
+}
+$('#crawlBtn').onclick=crawl;
+$('#pasteBtn').onclick=()=>{const h=$('#htmlPaste').value;if(!h){toast('Paste HTML first');return}analyse($('#docsUrl').value.trim()||'pasted',h)};
+$('#exportBtn').onclick=()=>download('docsrot-report.json',JSON.stringify(load('reports',[]),null,2));
+
+
+/* __REAL_SERVER_WIRING__ */
+async function __api(path, body){
+  try{
+    const r = await fetch(path, {method: body ? 'POST' : 'GET', headers: {'Content-Type':'application/json'}, body: body ? JSON.stringify(body) : undefined});
+    if(!r.ok) return null;
+    return await r.json();
+  }catch(e){ return null; }
+}
+let __serverUp = false;
+__api('/api/health').then(h => {
+  if(h && h.ok){
+    __serverUp = true;
+    const nav = document.querySelector('header nav');
+    if(nav){ const s=document.createElement('span'); s.textContent='● Live server'; s.style.cssText='color:#15803d;font-weight:600;font-size:13px'; nav.prepend(s); }
+  }
+});
+function __on(btnId, fn){
+  document.addEventListener('click', async (e) => {
+    const t = e.target && e.target.closest ? e.target.closest('#'+btnId) : null;
+    if(t && __serverUp){ e.stopPropagation(); e.preventDefault(); await fn(); }
+  }, true);
+}
+function __v(id){ const el=document.getElementById(id); return el ? el.value : ''; }
+
+__on('crawlBtn', async ()=>{
+  const st=document.getElementById('status'); if(st) st.textContent='Crawling docs from the server…';
+  const out=await __api('/api/check',{url:__v('docsUrl'), staleDays:parseInt(__v('staleDays')||'180',10)});
+  if(!out || out.error){ if(st) st.textContent=out?out.error:'Server check failed'; return; }
+  const tb=document.getElementById('results');
+  if(tb) tb.innerHTML=out.results.map(r=>'<tr class="'+(r.ok?'':'bad')+'"><td>'+esc(r.url)+'</td><td>'+r.status+'</td><td>'+(r.ok?'OK':'BROKEN')+'</td></tr>').join('');
+  const s=document.getElementById('summary'); if(s) s.textContent='Checked '+out.checked+' links · '+out.broken+' broken · page age '+(out.ageDays===null?'unknown':out.ageDays+' days')+(out.stale?' · STALE':'');
+  if(st) st.textContent='Done.';
+});
+
+</script>
+</body>
+</html>
